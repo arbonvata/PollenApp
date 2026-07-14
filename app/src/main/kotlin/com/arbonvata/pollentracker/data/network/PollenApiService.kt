@@ -6,7 +6,6 @@ import com.arbonvata.pollentracker.data.model.PollenCount
 import com.arbonvata.pollentracker.data.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.data.model.PollenType
 import com.arbonvata.pollentracker.data.model.Region
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -16,25 +15,21 @@ interface PollenApiService {
     suspend fun getRegions(
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100,
-    ): Response<PaginatedResponse<Region>>
-
-    // Get a specific region by ID (if available)
-    // Note: The API doesn't have a direct endpoint for single region
-    // You need to filter the list
+    ): PaginatedResponse<Region>
 
     // ============ POLLEN TYPES ============
     @GET("v1/pollen-types")
     suspend fun getPollenTypes(
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100,
-    ): Response<PaginatedResponse<PollenType>>
+    ): PaginatedResponse<PollenType>
 
     // ============ POLLEN LEVEL DEFINITIONS ============
     @GET("v1/pollen-level-definitions")
     suspend fun getPollenLevelDefinitions(
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100,
-    ): Response<PaginatedResponse<PollenLevelDefinition>>
+    ): PaginatedResponse<PollenLevelDefinition>
 
     // ============ FORECASTS ============
     @GET("v1/forecasts")
@@ -46,7 +41,7 @@ interface PollenApiService {
         @Query("end_date") endDate: String? = null,
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100,
-    ): Response<PaginatedResponse<Forecast>>
+    ): PaginatedResponse<Forecast>
 
     // ============ POLLEN COUNT ============
     @GET("v1/pollen-count")
@@ -58,5 +53,5 @@ interface PollenApiService {
         @Query("end_date") endDate: String? = null,
         @Query("offset") offset: Int = 0,
         @Query("limit") limit: Int = 100,
-    ): Response<PaginatedResponse<PollenCount>>
+    ): PaginatedResponse<PollenCount>
 }
