@@ -1,11 +1,11 @@
 package com.arbonvata.pollentracker.domain
 
-import com.arbonvata.pollentracker.data.model.Forecast
-import com.arbonvata.pollentracker.data.model.PaginatedResponse
-import com.arbonvata.pollentracker.data.model.PollenCount
-import com.arbonvata.pollentracker.data.model.PollenLevelDefinition
-import com.arbonvata.pollentracker.data.model.PollenType
-import com.arbonvata.pollentracker.data.model.Region
+import com.arbonvata.pollentracker.domain.model.Forecast
+import com.arbonvata.pollentracker.domain.model.PaginatedResponse
+import com.arbonvata.pollentracker.domain.model.PollenCount
+import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
+import com.arbonvata.pollentracker.domain.model.PollenType
+import com.arbonvata.pollentracker.domain.model.Region
 
 interface PollenRepository {
     suspend fun getRegions(

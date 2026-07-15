@@ -1,17 +1,11 @@
-package com.arbonvata.pollentracker.data.model
+package com.arbonvata.pollentracker.domain.model
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
-// ============ GENERIC PAGINATION WRAPPER ============
-@Serializable
 data class PaginatedResponse<T>(
-    @SerialName("_meta") val meta: PaginationMeta,
-    @SerialName("_links") val links: List<PaginationLink>,
+    val meta: PaginationMeta,
+    val links: List<PaginationLink>,
     val items: List<T>,
 )
 
-@Serializable
 data class PaginationMeta(
     val totalRecords: Int,
     val offset: Int,
@@ -19,7 +13,6 @@ data class PaginationMeta(
     val count: Int,
 )
 
-@Serializable
 data class PaginationLink(
     val href: String? = null,
     // "self" | "last" | "first" | "next" | "prev"
@@ -28,7 +21,6 @@ data class PaginationLink(
 
 // ============ REFERENCE DATA ============
 
-@Serializable
 data class PollenType(
     val id: String? = null,
     val name: String,
@@ -41,7 +33,6 @@ data class PollenType(
     val thresholdVeryHigh: Int? = null,
 )
 
-@Serializable
 data class Region(
     val id: String? = null,
     val name: String,
@@ -50,7 +41,6 @@ data class Region(
     val forecasts: String,
 )
 
-@Serializable
 data class PollenLevelDefinition(
     val level: Int,
     val name: String? = null,
@@ -58,7 +48,6 @@ data class PollenLevelDefinition(
 
 // ============ FORECAST DATA ============
 
-@Serializable
 data class Forecast(
     val id: String? = null,
     val regionId: String? = null,
@@ -70,14 +59,12 @@ data class Forecast(
     val levelSeries: List<PollenLevel>,
 )
 
-@Serializable
 data class ForecastImage(
     val id: String,
     val pollenId: String? = null,
     val url: String,
 )
 
-@Serializable
 data class PollenLevel(
     val pollenId: String? = null,
     val level: Int,
@@ -86,7 +73,6 @@ data class PollenLevel(
 
 // ============ POLLEN COUNT DATA ============
 
-@Serializable
 data class PollenCount(
     val pollenId: String? = null,
     val regionId: String? = null,
@@ -98,12 +84,10 @@ data class PollenCount(
 
 // ============ ERROR HANDLING (422 responses) ============
 
-@Serializable
 data class HTTPValidationError(
     val detail: List<ValidationError>,
 )
 
-@Serializable
 data class ValidationError(
     val loc: List<String>,
     val msg: String,
