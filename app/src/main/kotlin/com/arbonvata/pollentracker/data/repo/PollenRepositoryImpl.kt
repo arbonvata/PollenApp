@@ -183,6 +183,7 @@ class PollenRepositoryImpl
         override suspend fun getAllForecasts(
             regionId: String?,
             pollenId: String?,
+            current: Boolean?,
             startDate: String?,
             endDate: String?,
             pageSize: Int,
@@ -195,6 +196,7 @@ class PollenRepositoryImpl
                     apiService.getForecasts(
                         regionId = regionId,
                         pollenId = pollenId,
+                        current = current,
                         startDate = startDate,
                         endDate = endDate,
                         offset = offset,

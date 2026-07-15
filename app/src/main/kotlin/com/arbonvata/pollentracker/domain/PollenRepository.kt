@@ -74,6 +74,7 @@ interface PollenRepository {
     suspend fun getAllForecasts(
         regionId: String? = null,
         pollenId: String? = null,
+        current: Boolean? = null,
         startDate: String? = null,
         endDate: String? = null,
         pageSize: Int = 100,
