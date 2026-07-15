@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PollenTrackerViewModelTest {
-
     private val repository: PollenRepository = mockk()
     private val testDispatcher = StandardTestDispatcher()
 
@@ -37,57 +36,59 @@ class PollenTrackerViewModelTest {
     }
 
     @Test
-    fun `loadInitialData should update state with regions`() = runTest {
-        // Given
-        val regions = listOf(Region(id = "1", name = "Region 1", forecasts = "url"))
-        coEvery { repository.getAllRegions(any()) } returns regions
+    fun `loadInitialData should update state with regions`() =
+        runTest {
+            // Given
+            val regions = listOf(Region(id = "1", name = "Region 1", forecasts = "url"))
+            coEvery { repository.getAllRegions(any()) } returns regions
 
-        // When
-        val viewModel = PollenTrackerViewModel(repository)
-        
-        // Then
-        viewModel.uiState.test {
-            // Initial state (isLoading = false)
-            assertEquals(false, awaitItem().isLoading)
-            
-            // State after init block starts (isLoading = true)
-            // We need to trigger the dispatcher
-            testDispatcher.scheduler.runCurrent()
-            
-            val loadingState = awaitItem()
-            assertEquals(true, loadingState.isLoading)
+            // When
+            val viewModel = PollenTrackerViewModel(repository)
 
-            // State after data loaded
-            testDispatcher.scheduler.runCurrent()
-            val successState = awaitItem()
-            assertEquals(regions, successState.regions)
-            assertEquals(false, successState.isLoading)
+            // Then
+            viewModel.uiState.test {
+                // Initial state (isLoading = false)
+                assertEquals(false, awaitItem().isLoading)
+
+                // State after init block starts (isLoading = true)
+                // We need to trigger the dispatcher
+                testDispatcher.scheduler.runCurrent()
+
+                val loadingState = awaitItem()
+                assertEquals(true, loadingState.isLoading)
+
+                // State after data loaded
+                testDispatcher.scheduler.runCurrent()
+                val successState = awaitItem()
+                assertEquals(regions, successState.regions)
+                assertEquals(false, successState.isLoading)
+            }
         }
-    }
 
     @Test
-    fun `onRegionSelected should update selected region id`() = runTest {
-        // Given
-        val regionId = "reg1"
-        coEvery { 
-            repository.getAllForecasts(
-                regionId = any(), 
-                pollenId = any(), 
-                current = any(), 
-                startDate = any(), 
-                endDate = any(), 
-                pageSize = any()
-            ) 
-        } returns emptyList()
-        
-        val viewModel = PollenTrackerViewModel(repository)
-        testDispatcher.scheduler.runCurrent()
+    fun `onRegionSelected should update selected region id`() =
+        runTest {
+            // Given
+            val regionId = "reg1"
+            coEvery {
+                repository.getAllForecasts(
+                    regionId = any(),
+                    pollenId = any(),
+                    current = any(),
+                    startDate = any(),
+                    endDate = any(),
+                    pageSize = any(),
+                )
+            } returns emptyList()
 
-        // When
-        viewModel.onRegionSelected(regionId)
-        testDispatcher.scheduler.runCurrent()
+            val viewModel = PollenTrackerViewModel(repository)
+            testDispatcher.scheduler.runCurrent()
 
-        // Then
-        assertEquals(regionId, viewModel.uiState.value.selectedRegionId)
-    }
+            // When
+            viewModel.onRegionSelected(regionId)
+            testDispatcher.scheduler.runCurrent()
+
+            // Then
+            assertEquals(regionId, viewModel.uiState.value.selectedRegionId)
+        }
 }

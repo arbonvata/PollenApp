@@ -36,6 +36,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Suppress("MagicNumber")
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
         OkHttpClient
             .Builder()
