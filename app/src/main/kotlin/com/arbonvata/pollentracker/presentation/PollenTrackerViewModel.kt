@@ -103,4 +103,8 @@ class PollenTrackerViewModel
                 }
             }
         }
+
+        fun saveAllergySelection() {
+            TODO("Not yet implemented")
+        }
     }
