@@ -11,7 +11,9 @@ import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PollenRepositoryImpl
     @Inject
     constructor(
