@@ -1,5 +1,6 @@
 package com.arbonvata.pollentracker.presentation.compose
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.arbonvata.pollentracker.domain.model.PollenType
+import com.arbonvata.pollentracker.ui.theme.GrayLight40
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 
 @Composable
@@ -63,7 +66,41 @@ fun PollenFavoriteRegionSettings(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PollenTypeSettings(
+fun PollenAllergenLabel(modifier: Modifier = Modifier) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(color = GrayLight40, shape = MaterialTheme.shapes.medium)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(16.dp),
+    ) {
+        Text(
+            text = "Ange vilka pollenslag du vill följa. Du kan välja flera. Dessa kommer att visas på startsidan.",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+        )
+    }
+}
+
+@Composable
+fun PollenTypeSettingsList(
+    pollenTypes: List<PollenType>,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(modifier = modifier) {
+        items(pollenTypes.size) { index ->
+            PollenTypeSettingsItem(
+                pollenType = pollenTypes[index],
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+fun PollenTypeSettingsItem(
     modifier: Modifier = Modifier,
     pollenType: PollenType,
 ) {
@@ -104,14 +141,37 @@ fun PollenFavoriteRegionSettingsPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun PollenTypeSettingsPreview() {
+fun PollenTypeSettingsItemPreview() {
     PollenTrackerTheme {
-        PollenTypeSettings(
+        PollenTypeSettingsItem(
             pollenType =
                 PollenType(
                     id = "1",
                     name = "Björk",
                     forecasts = "",
+                ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PollenAllergenLabelPreview() {
+    PollenTrackerTheme {
+        PollenAllergenLabel()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PollenTypeSettingsListPreview() {
+    PollenTrackerTheme {
+        PollenTypeSettingsList(
+            pollenTypes =
+                listOf(
+                    PollenType(id = "1", name = "Björk", forecasts = ""),
+                    PollenType(id = "2", name = "Gräs", forecasts = ""),
+                    PollenType(id = "3", name = "Gråbo", forecasts = ""),
                 ),
         )
     }
