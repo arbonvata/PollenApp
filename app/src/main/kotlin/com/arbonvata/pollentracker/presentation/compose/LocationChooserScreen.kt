@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LocationChooserScreen(
+
     modifier: Modifier = Modifier,
     locations: List<String>,
 ) {

@@ -3,13 +3,13 @@ package com.arbonvata.pollentracker.data.repo
 import com.arbonvata.pollentracker.data.network.PollenApiService
 import com.arbonvata.pollentracker.data.network.mapper.PollenRemoteToLocalMapper
 import com.arbonvata.pollentracker.data.network.mapper.toDomain
-import com.arbonvata.pollentracker.domain.PollenRepository
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse
 import com.arbonvata.pollentracker.domain.model.PollenCount
 import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
+import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

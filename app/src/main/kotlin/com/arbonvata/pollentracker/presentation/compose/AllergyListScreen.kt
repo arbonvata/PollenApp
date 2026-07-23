@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.ForecastImage
-import com.arbonvata.pollentracker.presentation.PollenTrackerUiState
-import com.arbonvata.pollentracker.presentation.PollenTrackerViewModel
+import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerUiState
+import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 
 @Composable

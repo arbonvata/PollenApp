@@ -1,13 +1,13 @@
-package com.arbonvata.pollentracker.presentation
+package com.arbonvata.pollentracker.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.arbonvata.pollentracker.domain.PollenRepository
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PollenCount
 import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
+import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -53,11 +53,15 @@ class PollenTrackerViewModel
                     val pollenTypesDeferred = async { repository.getAllPollenTypes() }
                     val levelDefsDeferred = async { repository.getAllPollenLevelDefinitions() }
 
+                    val regions = regionsDeferred.await()
+                    val pollenTypes = pollenTypesDeferred.await()
+                    val levelDefinitions = levelDefsDeferred.await()
+
                     _uiState.update {
                         it.copy(
-                            regions = regionsDeferred.await(),
-                            pollenTypes = pollenTypesDeferred.await(),
-                            levelDefinitions = levelDefsDeferred.await(),
+                            regions = regions,
+                            pollenTypes = pollenTypes,
+                            levelDefinitions = levelDefinitions,
                             isLoading = false,
                         )
                     }

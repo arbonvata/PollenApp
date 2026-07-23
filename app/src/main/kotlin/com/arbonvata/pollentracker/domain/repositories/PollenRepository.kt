@@ -1,4 +1,4 @@
-package com.arbonvata.pollentracker.domain
+package com.arbonvata.pollentracker.domain.repositories
 
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse

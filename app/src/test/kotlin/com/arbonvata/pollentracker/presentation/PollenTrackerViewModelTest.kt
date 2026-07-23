@@ -1,8 +1,9 @@
 package com.arbonvata.pollentracker.presentation
 
 import app.cash.turbine.test
-import com.arbonvata.pollentracker.domain.PollenRepository
 import com.arbonvata.pollentracker.domain.model.Region
+import com.arbonvata.pollentracker.domain.repositories.PollenRepository
+import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerViewModel
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

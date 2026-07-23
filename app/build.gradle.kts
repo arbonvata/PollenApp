@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.datastore.preferences)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     testImplementation(libs.junit.jupiter)

@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import com.arbonvata.pollentracker.presentation.PollenTrackerViewModel
 import com.arbonvata.pollentracker.presentation.compose.AllergyListScreen
+import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
