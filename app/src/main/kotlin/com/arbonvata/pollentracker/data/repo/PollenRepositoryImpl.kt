@@ -3,6 +3,7 @@ package com.arbonvata.pollentracker.data.repo
 import com.arbonvata.pollentracker.data.network.PollenApiService
 import com.arbonvata.pollentracker.data.network.mapper.PollenRemoteToLocalMapper
 import com.arbonvata.pollentracker.data.network.mapper.toDomain
+import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse
 import com.arbonvata.pollentracker.domain.model.PollenCount
@@ -10,9 +11,12 @@ import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("TooManyFunctions")
 @Singleton
 class PollenRepositoryImpl
     @Inject
@@ -284,6 +288,40 @@ class PollenRepositoryImpl
                     break
                 }
                 offset += domainData.meta.limit
+            } while (true)
+
+            return allItems
+        }
+
+        override suspend fun getAllergensList(): List<AllergenItem> =
+            withContext(Dispatchers.IO) {
+                val pollenTypes = fetchAllPollenTypes()
+
+                pollenTypes.map { pollenType ->
+                    AllergenItem(
+                        id = pollenType.id ?: "",
+                        name = pollenType.name,
+                        hasForecast = pollenType.hasForecasts ?: false,
+                        hasPollenCounts = pollenType.hasPollenCounts ?: false,
+                    )
+                }
+            }
+
+        @Suppress("MagicNumber")
+        private suspend fun fetchAllPollenTypes(): List<PollenType> {
+            val allItems = mutableListOf<PollenType>()
+            var offset = 0
+            val limit = 100
+
+            do {
+                // Direct call - should work if the function is suspend
+                val response = apiService.getPollenTypes(offset = offset, limit = limit)
+                allItems.addAll(response.items.map { mapper.mapPollenType(it) })
+
+                if (response.meta.offset + response.meta.count >= response.meta.totalRecords) {
+                    break
+                }
+                offset += response.meta.limit
             } while (true)
 
             return allItems

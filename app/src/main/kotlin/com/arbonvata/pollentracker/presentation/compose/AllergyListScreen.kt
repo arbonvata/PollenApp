@@ -2,13 +2,10 @@ package com.arbonvata.pollentracker.presentation.compose
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -23,36 +20,41 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
-import com.arbonvata.pollentracker.domain.model.Forecast
-import com.arbonvata.pollentracker.domain.model.ForecastImage
-import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerUiState
-import com.arbonvata.pollentracker.presentation.viewmodel.PollenTrackerViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.domain.model.AllergenItem
+import com.arbonvata.pollentracker.presentation.viewmodel.AllergensViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 
 @Composable
 fun AllergyListScreen(
-    pollenTrackerViewModel: PollenTrackerViewModel,
+    allergenListViewModel: AllergensViewModel = hiltViewModel(),
+    onNavigateNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val uiState by pollenTrackerViewModel.uiState.collectAsState()
+    val allergens by allergenListViewModel.allergensState.collectAsState()
+    val selectedIds by allergenListViewModel.selectedAllergenIds.collectAsState()
 
     AllergyListContent(
-        uiState = uiState,
-        onSaveClick = { pollenTrackerViewModel.saveAllergySelection() },
-        onLoadData = { pollenTrackerViewModel.loadInitialData() },
+        allergens = allergens,
+        selectedIds = selectedIds,
+        onAllergenToggle = { allergenListViewModel.onAllergenToggle(it) },
+        onSaveClick = {
+            allergenListViewModel.saveAllergySelection(onSuccess = onNavigateNext)
+        },
+        onLoadData = { allergenListViewModel.loadData() },
         modifier = modifier,
     )
 }
 
 @Composable
 fun AllergyListContent(
-    uiState: PollenTrackerUiState,
+    allergens: List<AllergenItem>,
+    selectedIds: Set<String>,
+    onAllergenToggle: (String) -> Unit,
     onSaveClick: () -> Unit,
     onLoadData: () -> Unit,
     modifier: Modifier = Modifier,
@@ -105,7 +107,9 @@ fun AllergyListContent(
                 thickness = 2.dp,
             )
             CommonAllergyListSection(
-                items = uiState.forecasts.flatMap { it.images },
+                allergens = allergens,
+                selectedIds = selectedIds,
+                onAllergenToggle = onAllergenToggle,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
@@ -114,7 +118,9 @@ fun AllergyListContent(
 
 @Composable
 fun CommonAllergyListSection(
-    items: List<ForecastImage>,
+    allergens: List<AllergenItem>,
+    selectedIds: Set<String>,
+    onAllergenToggle: (String) -> Unit,
     modifier: Modifier,
 ) {
     Column(modifier = modifier) {
@@ -129,8 +135,12 @@ fun CommonAllergyListSection(
                     .padding(bottom = 8.dp),
         )
         LazyColumn {
-            items(items = items) { item ->
-                AllergyListItem(item = item)
+            items(items = allergens, key = { it.id }) { allergen ->
+                AllergyListItem(
+                    item = allergen,
+                    isChecked = selectedIds.contains(allergen.id),
+                    onCheckedChange = { onAllergenToggle(allergen.id) },
+                )
             }
         }
     }
@@ -138,29 +148,20 @@ fun CommonAllergyListSection(
 
 @Composable
 fun AllergyListItem(
-    item: ForecastImage,
-    imageUrl: String = "",
-    text: String = "",
-    isChecked: Boolean = false,
-    onCheckedChange: (Boolean) -> Unit = {},
+    item: AllergenItem,
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            contentScale = ContentScale.Crop,
-        )
-        Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = text,
+            text = item.name,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f),
@@ -177,23 +178,23 @@ fun AllergyListItem(
 fun AllergyListScreenPreview() {
     PollenTrackerTheme {
         AllergyListContent(
-            uiState =
-                PollenTrackerUiState(
-                    forecasts =
-                        listOf(
-                            Forecast(
-                                startDate = "2026-07-16",
-                                endDate = "2026-07-17",
-                                text = "Sample Forecast",
-                                images =
-                                    listOf(
-                                        ForecastImage(id = "1", url = "https://example.com/1.png"),
-                                        ForecastImage(id = "2", url = "https://example.com/2.png"),
-                                    ),
-                                levelSeries = emptyList(),
-                            ),
-                        ),
+            allergens =
+                listOf(
+                    AllergenItem(
+                        id = "1",
+                        name = "Birch",
+                        hasForecast = true,
+                        hasPollenCounts = true,
+                    ),
+                    AllergenItem(
+                        id = "2",
+                        name = "Grass",
+                        hasForecast = true,
+                        hasPollenCounts = true,
+                    ),
                 ),
+            selectedIds = setOf("1"),
+            onAllergenToggle = {},
             onSaveClick = {},
             onLoadData = {},
         )

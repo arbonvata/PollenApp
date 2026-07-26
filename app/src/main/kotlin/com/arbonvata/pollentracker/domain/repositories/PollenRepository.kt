@@ -1,5 +1,6 @@
 package com.arbonvata.pollentracker.domain.repositories
 
+import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse
 import com.arbonvata.pollentracker.domain.model.PollenCount
@@ -109,4 +110,6 @@ interface PollenRepository {
         excludeTechnicalErrors: Boolean = true,
         pageSize: Int = 100,
     ): List<PollenCount>
+
+    suspend fun getAllergensList(): List<AllergenItem>
 }

@@ -25,7 +25,8 @@ class UserSettingsRepositoryImpl
         override suspend fun writeData(userSettings: UserSettings) {
             dataStore.edit { preferences ->
                 preferences[PreferenceKeys.REGION_KEY] = userSettings.regionId
-                preferences[PreferenceKeys.ALLERGENS_LIST] = json.encodeToString(userSettings.allergyIds)
+                preferences[PreferenceKeys.ALLERGENS_LIST_ID] = json.encodeToString(userSettings.allergyIds)
+                preferences[PreferenceKeys.ALLERGENS_LIST_NAME] = json.encodeToString(userSettings.allergyNames)
             }
         }
 
@@ -39,7 +40,8 @@ class UserSettingsRepositoryImpl
                     }
                 }.map { preferences ->
                     val regionId = preferences[PreferenceKeys.REGION_KEY] ?: ""
-                    val allergiesJson = preferences[PreferenceKeys.ALLERGENS_LIST]
+
+                    val allergiesJson = preferences[PreferenceKeys.ALLERGENS_LIST_ID]
                     val allergyIds =
                         if (allergiesJson != null) {
                             try {
@@ -50,6 +52,23 @@ class UserSettingsRepositoryImpl
                         } else {
                             emptyList()
                         }
-                    UserSettings(regionId = regionId, allergyIds = allergyIds)
+
+                    val namesJson = preferences[PreferenceKeys.ALLERGENS_LIST_NAME]
+                    val allergyNames =
+                        if (namesJson != null) {
+                            try {
+                                json.decodeFromString<List<String>>(namesJson)
+                            } catch (e: Exception) {
+                                emptyList()
+                            }
+                        } else {
+                            emptyList()
+                        }
+
+                    UserSettings(
+                        regionId = regionId,
+                        allergyIds = allergyIds,
+                        allergyNames = allergyNames,
+                    )
                 }.first()
     }

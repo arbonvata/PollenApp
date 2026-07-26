@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,40 +22,80 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.arbonvata.pollentracker.domain.model.Region
+import com.arbonvata.pollentracker.domain.model.UserSettings
+import com.arbonvata.pollentracker.presentation.viewmodel.UserSettingsViewModel
 
 @Composable
 fun LocationChooserScreen(
-
     modifier: Modifier = Modifier,
-    locations: List<String>,
+    viewModel: UserSettingsViewModel = hiltViewModel(),
+    onNavigateNext: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        var textInput by remember { mutableStateOf("") }
+    val userSettings by viewModel.userSettingsState.collectAsState()
+    val regions by viewModel.regionsState.collectAsState()
+
+    LocationChooserContent(
+        modifier = modifier,
+        regions = regions,
+        initialSettings = userSettings,
+        onSave = { updatedSettings ->
+            viewModel.writeData(updatedSettings)
+            onNavigateNext()
+        },
+    )
+}
+
+@Composable
+fun LocationChooserContent(
+    regions: List<Region>,
+    initialSettings: UserSettings?,
+    onSave: (UserSettings) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var textInput by remember { mutableStateOf("") }
+    var selectedRegion by remember(initialSettings, regions) {
+        mutableStateOf(regions.find { it.id == initialSettings?.regionId })
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
         OutlinedTextField(
             value = textInput,
-            onValueChange = { newText -> textInput = newText },
-            label = { Text("Enter Location") },
-            modifier =
-                modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-        )
-        var chosenString by remember { mutableStateOf<String?>(null) }
-        DynamicRadioButtonGroup(
-            items = locations,
-            selectedItem = chosenString, // You can manage the selected item state here
-            onItemSelect = { chosenString = it },
-            itemIdProvider = { it }, // Assuming the location string is unique
-            itemTextProvider = { it }, // Display the location string
+            onValueChange = { textInput = it },
+            label = { Text("Search Location") },
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
+        )
+
+        DynamicRadioButtonGroup(
+            items = regions.filter { it.name.contains(textInput, ignoreCase = true) },
+            selectedItem = selectedRegion,
+            onItemSelect = { selectedRegion = it },
+            itemIdProvider = { it.id ?: "" },
+            itemTextProvider = { it.name },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
                     .weight(1f),
         )
 
         Button(
-            onClick = { /* Handle save action */ },
+            onClick = {
+                selectedRegion?.id?.let { regionId ->
+                    onSave(
+                        UserSettings(
+                            regionId = regionId,
+                            allergyIds = initialSettings?.allergyIds ?: emptyList(),
+                            allergyNames = initialSettings?.allergyNames ?: emptyList(),
+                        ),
+                    )
+                }
+            },
+            enabled = selectedRegion != null,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -109,7 +150,14 @@ fun <T> DynamicRadioButtonGroup(
 @Preview(showBackground = true)
 @Composable
 fun LocationChooserScreenPreview() {
-    LocationChooserScreen(
-        locations = listOf("London", "Paris", "New York", "Tokyo"),
+    LocationChooserContent(
+        regions =
+            listOf(
+                Region(id = "1", name = "London", forecasts = ""),
+                Region(id = "2", name = "Paris", forecasts = ""),
+                Region(id = "3", name = "New York", forecasts = ""),
+            ),
+        initialSettings = UserSettings(regionId = "1", allergyIds = emptyList(), allergyNames = emptyList()),
+        onSave = {},
     )
 }
