@@ -8,7 +8,19 @@ import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 
+@Suppress("TooManyFunctions")
 interface PollenRepository {
+    /**
+     * @param regionId required - e.g. id for Lund/Malmö/Kristianstad from /v1/regions
+     * @param allergens list of names or UUIDs e.g. listOf("Björk", "Gräs", "Gråbo")
+     * @param daysIncludingToday 1 = today only, 3 = today + next 2 days
+     */
+    suspend fun getForecastForAllergens(
+        regionId: String,
+        allergens: List<String>,
+        daysIncludingToday: Int,
+    ): List<Forecast>
+
     suspend fun getRegions(
         offset: Int = 0,
         limit: Int = 100,

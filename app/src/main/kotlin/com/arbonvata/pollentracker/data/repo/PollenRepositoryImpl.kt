@@ -12,7 +12,13 @@ import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +30,55 @@ class PollenRepositoryImpl
         private val apiService: PollenApiService,
         private val mapper: PollenRemoteToLocalMapper,
     ) : PollenRepository {
+        private val zone = ZoneId.of("Europe/Stockholm")
+        private val df = DateTimeFormatter.ISO_LOCAL_DATE
+
+        /**
+         * @param regionId required - e.g. id for Lund/Malmö/Kristianstad from /v1/regions
+         * @param allergens list of names or UUIDs e.g. listOf("Björk", "Gräs", "Gråbo")
+         * @param daysIncludingToday 1 = today only, 3 = today + next 2 days
+         */
+        override suspend fun getForecastForAllergens(
+            regionId: String,
+            allergens: List<String>,
+            daysIncludingToday: Int,
+        ): List<Forecast> {
+            require(regionId.isNotBlank()) { "regionId is required" }
+            require(daysIncludingToday >= 1)
+
+            val today = LocalDate.now(zone)
+            val end = today.plusDays((daysIncludingToday - 1).toLong())
+            val startStr = today.format(df)
+            val endStr = end.format(df)
+
+            // Resolve names -> UUIDs
+            val allTypes = apiService.getPollenTypes().items
+            val lookup =
+                allTypes.associate { it.name.lowercase() to it.id } +
+                    allTypes.associate { it.id?.lowercase() to it.id }
+
+            val pollenIds = allergens.mapNotNull { lookup[it.lowercase()] }
+            if (pollenIds.isEmpty()) return emptyList()
+
+            return coroutineScope {
+                pollenIds
+                    .map { pid ->
+                        async {
+                            apiService
+                                .getForecasts(
+                                    regionId = regionId,
+                                    pollenId = pid,
+                                    startDate = startStr,
+                                    endDate = endStr,
+                                    current = null,
+                                ).items
+                                .map { mapper.mapForecast(it) }
+                        }
+                    }.awaitAll()
+                    .flatten()
+            }
+        }
+
         override suspend fun getRegions(
             offset: Int,
             limit: Int,

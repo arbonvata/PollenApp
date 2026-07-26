@@ -22,6 +22,7 @@ import com.arbonvata.pollentracker.presentation.viewmodel.UserSettingsViewModel
 fun SummaryScreen(
     modifier: Modifier = Modifier,
     userSettingsViewModel: UserSettingsViewModel = hiltViewModel(),
+    onNavigateNext: () -> Unit,
 ) {
     val data = userSettingsViewModel.userSettingsState.collectAsState()
 
@@ -67,9 +68,7 @@ fun SummaryScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = {
-                // Navigate to TodaysPollenScreen
-            },
+            onClick = onNavigateNext,
         ) {
             Text("OK")
         }
