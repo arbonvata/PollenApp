@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
@@ -29,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.presentation.getAllergenIcon
 import com.arbonvata.pollentracker.presentation.viewmodel.TodaysPollenViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 import java.time.LocalDate
@@ -156,6 +159,16 @@ fun TodaysPollenScreenItem(itemData: TodaysPollenScreenItemData) {
                 .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            imageVector = getAllergenIcon(itemData.pollenName),
+            contentDescription = itemData.pollenName,
+            modifier =
+                Modifier
+                    .size(48.dp)
+                    .padding(end = 12.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = itemData.pollenName,
@@ -199,17 +212,26 @@ private fun NoPollenDataForThoseItems(emptyAllergenList: List<TodaysPollenScreen
 
 @Composable
 fun NoPollenDataItem(itemData: TodaysPollenScreenItemData) {
-    Box(
+    Row(
         modifier =
             Modifier
-                .padding(end = 8.dp)
+                .padding(end = 16.dp)
                 .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            imageVector = getAllergenIcon(itemData.pollenName),
+            contentDescription = itemData.pollenName,
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .padding(end = 8.dp),
+            tint = MaterialTheme.colorScheme.secondary,
+        )
         Text(
             text = itemData.pollenName,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(8.dp),
         )
     }
 }

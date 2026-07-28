@@ -32,7 +32,7 @@ class AllergensViewModel
 
         fun loadData() {
             viewModelScope.launch {
-                val allergens = getAllergensUseCase()
+                val allergens = getAllergensUseCase().filter { it.hasForecast }
                 Log.d("ArbonVata", allergens.toString())
                 _allergensState.update { allergens }
 

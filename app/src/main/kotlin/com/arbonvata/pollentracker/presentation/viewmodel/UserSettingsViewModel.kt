@@ -1,5 +1,6 @@
 package com.arbonvata.pollentracker.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arbonvata.pollentracker.domain.model.Region
@@ -36,6 +37,11 @@ class UserSettingsViewModel
                 _userSettingsState.update { settings }
 
                 val regionsResult = getRegionsUseCase.invoke()
+                val allergens =
+                    settings.allergyNames.forEach {
+                        Log.d("ArbonVata", it)
+                    }
+
                 _regionsState.update {
                     regionsResult.getOrDefault(emptyList())
                 }

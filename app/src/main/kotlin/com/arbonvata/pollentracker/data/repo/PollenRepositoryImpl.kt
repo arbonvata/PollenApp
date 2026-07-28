@@ -1,5 +1,6 @@
 package com.arbonvata.pollentracker.data.repo
 
+import android.util.Log
 import com.arbonvata.pollentracker.data.network.PollenApiService
 import com.arbonvata.pollentracker.data.network.mapper.PollenRemoteToLocalMapper
 import com.arbonvata.pollentracker.data.network.mapper.toDomain
@@ -12,13 +13,11 @@ import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,35 +47,32 @@ class PollenRepositoryImpl
 
             val today = LocalDate.now(zone)
             val end = today.plusDays((daysIncludingToday - 1).toLong())
-            val startStr = today.format(df)
-            val endStr = end.format(df)
 
-            // Resolve names -> UUIDs
             val allTypes = apiService.getPollenTypes().items
             val lookup =
-                allTypes.associate { it.name.lowercase() to it.id } +
-                    allTypes.associate { it.id?.lowercase() to it.id }
+                allTypes.associate { it.name.lowercase(Locale.ROOT) to it.id } +
+                    allTypes.associate { it.id?.lowercase(Locale.ROOT) to it.id }
+            val targetPollenIds = allergens.mapNotNull { lookup[it.lowercase(Locale.ROOT)] }.toSet()
 
-            val pollenIds = allergens.mapNotNull { lookup[it.lowercase()] }
-            if (pollenIds.isEmpty()) return emptyList()
-
-            return coroutineScope {
-                pollenIds
-                    .map { pid ->
-                        async {
-                            apiService
-                                .getForecasts(
-                                    regionId = regionId,
-                                    pollenId = pid,
-                                    startDate = startStr,
-                                    endDate = endStr,
-                                    current = null,
-                                ).items
-                                .map { mapper.mapForecast(it) }
-                        }
-                    }.awaitAll()
-                    .flatten()
+            if (targetPollenIds.isEmpty()) {
+                Log.w("PollenRepo", "No matching pollen IDs for allergens: $allergens")
+                return emptyList()
             }
+
+            Log.d("PollenRepo", "Fetching current forecast for region=$regionId")
+            val response =
+                apiService.getForecasts(
+                    regionId = regionId,
+                    current = true,
+                    // no start/end date — avoids the strict containment filter entirely
+                )
+
+            Log.d("PollenRepo", "API returned ${response.items.size} total items for region $regionId")
+
+            return response.items
+                .filter { item -> item.levelSeries.any { it.pollenId in targetPollenIds } }
+                .map { mapper.mapForecast(it) }
+                .also { Log.d("PollenRepo", "Returning ${it.size} filtered forecast items") }
         }
 
         override suspend fun getRegions(
@@ -369,7 +365,6 @@ class PollenRepositoryImpl
             val limit = 100
 
             do {
-                // Direct call - should work if the function is suspend
                 val response = apiService.getPollenTypes(offset = offset, limit = limit)
                 allItems.addAll(response.items.map { mapper.mapPollenType(it) })
 
