@@ -1,13 +1,14 @@
 package com.arbonvata.pollentracker.data.repo
 
 import android.util.Log
+import com.arbonvata.pollentracker.data.model.PollenCountRemote
 import com.arbonvata.pollentracker.data.network.PollenApiService
 import com.arbonvata.pollentracker.data.network.mapper.PollenRemoteToLocalMapper
 import com.arbonvata.pollentracker.data.network.mapper.toDomain
+import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse
-import com.arbonvata.pollentracker.domain.model.PollenCount
 import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
@@ -75,6 +76,77 @@ class PollenRepositoryImpl
                 .also { Log.d("PollenRepo", "Returning ${it.size} filtered forecast items") }
         }
 
+        /**
+         * Measured daily levels per allergen from day 1 of the current year until today.
+         * Fetches all pollen counts for the region in one paginated pass and groups
+         * client-side, so one allergen filter per request is not needed.
+         */
+        @Suppress("MagicNumber")
+        override suspend fun getYearlyHistoryForAllergens(
+            regionId: String,
+            allergens: List<String>,
+        ): List<AllergenHistory> =
+            withContext(Dispatchers.IO) {
+                require(regionId.isNotBlank()) { "regionId is required" }
+
+                val today = LocalDate.now(zone)
+                val startDate = LocalDate.of(today.year, 1, 1).format(df)
+                val endDate = today.format(df)
+
+                val allTypes = apiService.getPollenTypes().items
+                val lookup =
+                    allTypes.associate { it.name.lowercase(Locale.ROOT) to it.id } +
+                        allTypes.associate { it.id?.lowercase(Locale.ROOT) to it.id }
+                val targetPollenIds = allergens.mapNotNull { lookup[it.lowercase(Locale.ROOT)] }.toSet()
+
+                if (allergens.isNotEmpty() && targetPollenIds.isEmpty()) {
+                    Log.w("PollenRepo", "No matching pollen IDs for allergens: $allergens")
+                    return@withContext emptyList()
+                }
+
+                Log.d("PollenRepo", "Fetching yearly pollen counts for region=$regionId from $startDate to $endDate")
+
+                val counts = mutableListOf<PollenCountRemote>()
+                var offset = 0
+                val limit = 1000
+                do {
+                    val response =
+                        apiService.getPollenCount(
+                            regionId = regionId,
+                            hasTechnicalError = false,
+                            startDate = startDate,
+                            endDate = endDate,
+                            offset = offset,
+                            limit = limit,
+                        )
+                    counts.addAll(response.items)
+                    if (response.meta.offset + response.meta.count >= response.meta.totalRecords) {
+                        break
+                    }
+                    offset += response.meta.limit
+                } while (true)
+
+                Log.d("PollenRepo", "Fetched ${counts.size} pollen count records for region $regionId")
+
+                val idToName = allTypes.mapNotNull { type -> type.id?.let { it to type.name } }.toMap()
+
+                counts
+                    .filter { !it.technicalError && it.pollenId != null }
+                    .filter { targetPollenIds.isEmpty() || it.pollenId in targetPollenIds }
+                    .groupBy { it.pollenId!! }
+                    .map { (pollenId, records) ->
+                        AllergenHistory(
+                            pollenId = pollenId,
+                            pollenName = idToName[pollenId],
+                            levels =
+                                records
+                                    .groupBy { it.date }
+                                    .map { (_, sameDay) -> mapper.mapDailyPollenLevel(sameDay.last()) }
+                                    .sortedBy { it.date },
+                        )
+                    }.sortedBy { it.pollenName ?: it.pollenId }
+            }
+
         override suspend fun getRegions(
             offset: Int,
             limit: Int,
@@ -140,12 +212,6 @@ class PollenRepositoryImpl
                 .find { it.id == pollenId }
                 ?.let { mapper.mapPollenType(it) }
 
-        override suspend fun getPollenLevelDefinitions(
-            offset: Int,
-            limit: Int,
-        ): PaginatedResponse<PollenLevelDefinition> =
-            apiService.getPollenLevelDefinitions(offset, limit).toDomain { mapper.mapPollenLevelDefinition(it) }
-
         override suspend fun getAllPollenLevelDefinitions(pageSize: Int): List<PollenLevelDefinition> {
             val allItems = mutableListOf<PollenLevelDefinition>()
             var offset = 0
@@ -170,179 +236,6 @@ class PollenRepositoryImpl
                 .items
                 .find { it.level == levelValue }
                 ?.let { mapper.mapPollenLevelDefinition(it) }
-
-        override suspend fun getForecasts(
-            regionId: String?,
-            pollenId: String?,
-            current: Boolean?,
-            startDate: String?,
-            endDate: String?,
-            offset: Int,
-            limit: Int,
-        ): PaginatedResponse<Forecast> =
-            apiService
-                .getForecasts(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    current = current,
-                    startDate = startDate,
-                    endDate = endDate,
-                    offset = offset,
-                    limit = limit,
-                ).toDomain { mapper.mapForecast(it) }
-
-        override suspend fun getLatestForecast(
-            regionId: String?,
-            pollenId: String?,
-        ): Forecast? {
-            val data =
-                apiService.getForecasts(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    current = true,
-                )
-            return data.items.firstOrNull()?.let { mapper.mapForecast(it) }
-        }
-
-        override suspend fun getLatestForecastOrThrow(
-            regionId: String?,
-            pollenId: String?,
-        ): Forecast {
-            val data =
-                apiService.getForecasts(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    current = true,
-                )
-            return data.items.firstOrNull()?.let { mapper.mapForecast(it) }
-                ?: throw NoSuchElementException("No forecast found for region: $regionId, pollen: $pollenId")
-        }
-
-        override suspend fun getForecastsForDateRange(
-            startDate: String,
-            endDate: String,
-            regionId: String?,
-            pollenId: String?,
-            offset: Int,
-            limit: Int,
-        ): PaginatedResponse<Forecast> =
-            apiService
-                .getForecasts(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    startDate = startDate,
-                    endDate = endDate,
-                    offset = offset,
-                    limit = limit,
-                    current = true,
-                ).toDomain { mapper.mapForecast(it) }
-
-        override suspend fun getAllForecasts(
-            regionId: String?,
-            pollenId: String?,
-            current: Boolean?,
-            startDate: String?,
-            endDate: String?,
-            pageSize: Int,
-        ): List<Forecast> {
-            val allItems = mutableListOf<Forecast>()
-            var offset = 0
-
-            do {
-                val remoteData =
-                    apiService.getForecasts(
-                        regionId = regionId,
-                        pollenId = pollenId,
-                        current = current,
-                        startDate = startDate,
-                        endDate = endDate,
-                        offset = offset,
-                        limit = pageSize,
-                    )
-                val domainData = remoteData.toDomain { mapper.mapForecast(it) }
-                allItems.addAll(domainData.items)
-
-                if (domainData.meta.offset + domainData.meta.count >= domainData.meta.totalRecords) {
-                    break
-                }
-                offset += domainData.meta.limit
-            } while (true)
-
-            return allItems
-        }
-
-        override suspend fun getPollenCounts(
-            regionId: String?,
-            pollenId: String?,
-            hasTechnicalError: Boolean?,
-            startDate: String?,
-            endDate: String?,
-            offset: Int,
-            limit: Int,
-        ): PaginatedResponse<PollenCount> =
-            apiService
-                .getPollenCount(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    hasTechnicalError = hasTechnicalError,
-                    startDate = startDate,
-                    endDate = endDate,
-                    offset = offset,
-                    limit = limit,
-                ).toDomain { mapper.mapPollenCount(it) }
-
-        override suspend fun getPollenCountsWithoutErrors(
-            regionId: String?,
-            pollenId: String?,
-            startDate: String?,
-            endDate: String?,
-            offset: Int,
-            limit: Int,
-        ): PaginatedResponse<PollenCount> =
-            apiService
-                .getPollenCount(
-                    regionId = regionId,
-                    pollenId = pollenId,
-                    hasTechnicalError = false,
-                    startDate = startDate,
-                    endDate = endDate,
-                    offset = offset,
-                    limit = limit,
-                ).toDomain { mapper.mapPollenCount(it) }
-
-        override suspend fun getAllPollenCounts(
-            regionId: String?,
-            pollenId: String?,
-            startDate: String?,
-            endDate: String?,
-            excludeTechnicalErrors: Boolean,
-            pageSize: Int,
-        ): List<PollenCount> {
-            val allItems = mutableListOf<PollenCount>()
-            var offset = 0
-
-            do {
-                val remoteData =
-                    apiService.getPollenCount(
-                        regionId = regionId,
-                        pollenId = pollenId,
-                        hasTechnicalError = if (excludeTechnicalErrors) false else null,
-                        startDate = startDate,
-                        endDate = endDate,
-                        offset = offset,
-                        limit = pageSize,
-                    )
-                val domainData = remoteData.toDomain { mapper.mapPollenCount(it) }
-                allItems.addAll(domainData.items)
-
-                if (domainData.meta.offset + domainData.meta.count >= domainData.meta.totalRecords) {
-                    break
-                }
-                offset += domainData.meta.limit
-            } while (true)
-
-            return allItems
-        }
 
         override suspend fun getAllergensList(): List<AllergenItem> =
             withContext(Dispatchers.IO) {

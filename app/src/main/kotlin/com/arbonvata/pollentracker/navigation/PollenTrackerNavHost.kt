@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.arbonvata.pollentracker.presentation.compose.AllergyListScreen
+import com.arbonvata.pollentracker.presentation.compose.HistoryMpChartScreen
+import com.arbonvata.pollentracker.presentation.compose.HistoryScreen
 import com.arbonvata.pollentracker.presentation.compose.LocationChooserScreen
 import com.arbonvata.pollentracker.presentation.compose.SummaryScreen
 import com.arbonvata.pollentracker.presentation.compose.TodaysPollenScreen
@@ -23,6 +25,12 @@ object AllergyList
 
 @Serializable
 object TodaysPollen
+
+@Serializable
+object History
+
+@Serializable
+object HistoryMpChart
 
 @Composable
 fun PollenTrackerNavHost(
@@ -58,6 +66,23 @@ fun PollenTrackerNavHost(
         composable<TodaysPollen> {
             TodaysPollenScreen(
                 onNavigateNext = {},
+                onNavigateHistory = {
+                    navController.navigate(History)
+                },
+            )
+        }
+        composable<History> {
+            HistoryScreen(
+                onSwitchChart = {
+                    navController.navigate(HistoryMpChart)
+                },
+            )
+        }
+        composable<HistoryMpChart> {
+            HistoryMpChartScreen(
+                onSwitchChart = {
+                    navController.popBackStack()
+                },
             )
         }
     }

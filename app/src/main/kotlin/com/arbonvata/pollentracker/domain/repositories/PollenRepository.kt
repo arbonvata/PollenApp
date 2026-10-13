@@ -1,9 +1,9 @@
 package com.arbonvata.pollentracker.domain.repositories
 
+import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PaginatedResponse
-import com.arbonvata.pollentracker.domain.model.PollenCount
 import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
@@ -20,6 +20,18 @@ interface PollenRepository {
         allergens: List<String>,
         daysIncludingToday: Int,
     ): List<Forecast>
+
+    /**
+     * Measured daily levels per allergen from day 1 of the current year until today
+     * (Europe/Stockholm). Days without measurements are simply absent from each list.
+     *
+     * @param regionId required - e.g. id for Stockholm from /v1/regions
+     * @param allergens list of names or UUIDs e.g. listOf("Björk", "Gräs", "Gråbo"); empty = all pollen types
+     */
+    suspend fun getYearlyHistoryForAllergens(
+        regionId: String,
+        allergens: List<String> = emptyList(),
+    ): List<AllergenHistory>
 
     suspend fun getRegions(
         offset: Int = 0,
@@ -44,84 +56,9 @@ interface PollenRepository {
 
     // ============ POLLEN LEVEL DEFINITIONS ============
 
-    suspend fun getPollenLevelDefinitions(
-        offset: Int = 0,
-        limit: Int = 100,
-    ): PaginatedResponse<PollenLevelDefinition>
-
     suspend fun getAllPollenLevelDefinitions(pageSize: Int = 100): List<PollenLevelDefinition>
 
     suspend fun getLevelDefinitionByValue(levelValue: Int): PollenLevelDefinition?
-
-    // ============ FORECASTS ============
-
-    suspend fun getForecasts(
-        regionId: String? = null,
-        pollenId: String? = null,
-        current: Boolean? = null,
-        startDate: String? = null,
-        endDate: String? = null,
-        offset: Int = 0,
-        limit: Int = 100,
-    ): PaginatedResponse<Forecast>
-
-    suspend fun getLatestForecast(
-        regionId: String? = null,
-        pollenId: String? = null,
-    ): Forecast?
-
-    suspend fun getLatestForecastOrThrow(
-        regionId: String? = null,
-        pollenId: String? = null,
-    ): Forecast
-
-    suspend fun getForecastsForDateRange(
-        startDate: String,
-        endDate: String,
-        regionId: String? = null,
-        pollenId: String? = null,
-        offset: Int = 0,
-        limit: Int = 100,
-    ): PaginatedResponse<Forecast>
-
-    suspend fun getAllForecasts(
-        regionId: String? = null,
-        pollenId: String? = null,
-        current: Boolean? = null,
-        startDate: String? = null,
-        endDate: String? = null,
-        pageSize: Int = 100,
-    ): List<Forecast>
-
-    // ============ POLLEN COUNTS ============
-
-    suspend fun getPollenCounts(
-        regionId: String? = null,
-        pollenId: String? = null,
-        hasTechnicalError: Boolean? = null,
-        startDate: String? = null,
-        endDate: String? = null,
-        offset: Int = 0,
-        limit: Int = 100,
-    ): PaginatedResponse<PollenCount>
-
-    suspend fun getPollenCountsWithoutErrors(
-        regionId: String? = null,
-        pollenId: String? = null,
-        startDate: String? = null,
-        endDate: String? = null,
-        offset: Int = 0,
-        limit: Int = 100,
-    ): PaginatedResponse<PollenCount>
-
-    suspend fun getAllPollenCounts(
-        regionId: String? = null,
-        pollenId: String? = null,
-        startDate: String? = null,
-        endDate: String? = null,
-        excludeTechnicalErrors: Boolean = true,
-        pageSize: Int = 100,
-    ): List<PollenCount>
 
     suspend fun getAllergensList(): List<AllergenItem>
 }

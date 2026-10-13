@@ -9,7 +9,7 @@ espressoCore = "3.7.0"
 kotlinxSerializationJson = "1.11.0"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 composeBom = "2026.09.00"
 composeIcons = "1.7.8"
 retrofit = "3.0.0"
@@ -25,6 +25,7 @@ coroutines = "1.11.0"
 turbine = "1.2.1"
 detekt = "1.23.8"
 material3 = "1.4.0"
+mpandroidchart = "v4.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -60,6 +61,7 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+mpandroidchart-compose = { group = "com.github.PhilJay.MPAndroidChart", name = "MPChartCompose", version.ref = "mpandroidchart" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -12,6 +12,7 @@ import com.arbonvata.pollentracker.data.model.PollenLevelRemote
 import com.arbonvata.pollentracker.data.model.PollenTypeRename
 import com.arbonvata.pollentracker.data.model.RegionRemote
 import com.arbonvata.pollentracker.data.model.ValidationErrorRemote
+import com.arbonvata.pollentracker.domain.model.DailyPollenLevel
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.ForecastImage
 import com.arbonvata.pollentracker.domain.model.HTTPValidationError
@@ -24,11 +25,23 @@ import com.arbonvata.pollentracker.domain.model.PollenLevelDefinition
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.model.ValidationError
+import java.time.LocalDate
 import javax.inject.Inject
 
 class PollenRemoteToLocalMapper
     @Inject
     constructor() {
+        // countDescription values from /v1/pollen-count mapped onto the 0-7 scale
+        // used by /v1/pollen-level-definitions ("Låga halter" -> "Låga" = 1, etc.)
+        private val countDescriptionToLevel =
+            mapOf(
+                "Inga halter" to 0,
+                "Låga halter" to 1,
+                "Måttliga halter" to 3,
+                "Höga halter" to 5,
+                "Mycket höga halter" to 7,
+            )
+
         fun <T, R> mapPaginatedResponse(
             remote: PaginatedResponseRemote<T>,
             itemMapper: (T) -> R,
@@ -115,6 +128,14 @@ class PollenRemoteToLocalMapper
                 countDescription = remote.countDescription,
                 technicalError = remote.technicalError,
                 date = remote.date,
+            )
+
+        fun mapDailyPollenLevel(remote: PollenCountRemote): DailyPollenLevel =
+            DailyPollenLevel(
+                date = LocalDate.parse(remote.date.substringBefore("T")),
+                dailyCount = remote.dailyCount,
+                levelDescription = remote.countDescription,
+                level = remote.countDescription?.let { countDescriptionToLevel[it] },
             )
 
         fun mapHTTPValidationError(remote: HTTPValidationErrorRename): HTTPValidationError =

@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -49,6 +52,7 @@ fun TodaysPollenScreen(
     modifier: Modifier = Modifier,
     viewModel: TodaysPollenViewModel = hiltViewModel(),
     onNavigateNext: () -> Unit,
+    onNavigateHistory: () -> Unit = {},
 ) {
     val uiStates by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -66,6 +70,18 @@ fun TodaysPollenScreen(
             DaysScreenHeader(
                 selectedTabIndex = selectedTabIndex,
                 onTabSelected = { selectedTabIndex = it },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onNavigateHistory,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.BarChart,
+                        contentDescription = null,
+                    )
+                },
+                text = { Text(text = "History") },
             )
         },
     ) { innerPadding ->

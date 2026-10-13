@@ -2,8 +2,10 @@ package com.arbonvata.pollentracker.di
 
 import com.arbonvata.pollentracker.data.usecase.GetAllergensUseCaseImpl
 import com.arbonvata.pollentracker.data.usecase.GetRegionsUseCaseImpl
+import com.arbonvata.pollentracker.data.usecase.GetYearlyHistoryUseCaseImpl
 import com.arbonvata.pollentracker.domain.usecases.GetAllergensUseCase
 import com.arbonvata.pollentracker.domain.usecases.GetRegionsUseCase
+import com.arbonvata.pollentracker.domain.usecases.GetYearlyHistoryUseCase
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -20,4 +22,8 @@ abstract class UseCaseModule {
     @Binds
     @ViewModelScoped
     abstract fun bindsGetAllergensUseCase(getAllergensUseCaseImpl: GetAllergensUseCaseImpl): GetAllergensUseCase
+
+    @Binds
+    @ViewModelScoped
+    abstract fun bindsGetYearlyHistoryUseCase(getYearlyHistoryUseCaseImpl: GetYearlyHistoryUseCaseImpl): GetYearlyHistoryUseCase
 }
