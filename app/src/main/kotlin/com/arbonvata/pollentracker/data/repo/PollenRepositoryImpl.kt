@@ -43,8 +43,12 @@ class PollenRepositoryImpl
             allergens: List<String>,
             daysIncludingToday: Int,
         ): List<Forecast> {
-            require(regionId.isNotBlank()) { "regionId is required" }
             require(daysIncludingToday >= 1)
+
+            if (regionId.isBlank()) {
+                Log.w("PollenRepo", "regionId is blank - returning no forecasts")
+                return emptyList()
+            }
 
             val today = LocalDate.now(zone)
             val end = today.plusDays((daysIncludingToday - 1).toLong())
@@ -85,10 +89,13 @@ class PollenRepositoryImpl
         override suspend fun getYearlyHistoryForAllergens(
             regionId: String,
             allergens: List<String>,
-        ): List<AllergenHistory> =
-            withContext(Dispatchers.IO) {
-                require(regionId.isNotBlank()) { "regionId is required" }
+        ): List<AllergenHistory> {
+            if (regionId.isBlank()) {
+                Log.w("PollenRepo", "regionId is blank - returning no history")
+                return emptyList()
+            }
 
+            return withContext(Dispatchers.IO) {
                 val today = LocalDate.now(zone)
                 val startDate = LocalDate.of(today.year, 1, 1).format(df)
                 val endDate = today.format(df)
@@ -146,6 +153,7 @@ class PollenRepositoryImpl
                         )
                     }.sortedBy { it.pollenName ?: it.pollenId }
             }
+        }
 
         override suspend fun getRegions(
             offset: Int,

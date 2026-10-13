@@ -3,6 +3,7 @@ package com.arbonvata.pollentracker.data.usecase
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import com.arbonvata.pollentracker.domain.usecases.GetRegionsUseCase
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 class GetRegionsUseCaseImpl
@@ -17,6 +18,9 @@ class GetRegionsUseCaseImpl
             try {
                 val regions = repository.getAllRegions(pageSize = limit)
                 return Result.success(regions)
+            } catch (e: CancellationException) {
+                // cancellation is not a failure - rethrow so the calling scope can end
+                throw e
             } catch (e: Exception) {
                 return Result.failure(e)
             }

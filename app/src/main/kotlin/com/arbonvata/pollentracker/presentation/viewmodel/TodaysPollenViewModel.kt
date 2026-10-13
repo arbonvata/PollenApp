@@ -9,6 +9,7 @@ import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import com.arbonvata.pollentracker.domain.repositories.UserPreferenceRepository
 import com.arbonvata.pollentracker.presentation.compose.TodaysPollenScreenItemData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -118,6 +119,9 @@ class TodaysPollenViewModel
                     }
 
                     _uiState.update { states }
+                } catch (e: CancellationException) {
+                    // the scope is being cleared - let the coroutine end without an error state
+                    throw e
                 } catch (e: Exception) {
                     Log.e("TodaysPollenVM", "Error loading data", e)
                     val errorState =

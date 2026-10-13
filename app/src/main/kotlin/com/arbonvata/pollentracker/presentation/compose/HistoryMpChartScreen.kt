@@ -46,8 +46,6 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-private const val MAX_CHART_LEVEL = 7
-
 // ~one x label per month, epoch days are the x values
 private const val MONTH_GRANULARITY_DAYS = 30f
 
@@ -100,7 +98,7 @@ fun HistoryMpChartScreenContent(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = uiState.error ?: "Unknown error",
+                        text = uiState.error.orEmpty(),
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )

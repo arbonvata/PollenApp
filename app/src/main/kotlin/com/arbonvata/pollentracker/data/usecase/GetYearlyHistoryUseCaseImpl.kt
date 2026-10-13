@@ -3,6 +3,7 @@ package com.arbonvata.pollentracker.data.usecase
 import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import com.arbonvata.pollentracker.domain.usecases.GetYearlyHistoryUseCase
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 class GetYearlyHistoryUseCaseImpl
@@ -17,6 +18,9 @@ class GetYearlyHistoryUseCaseImpl
             try {
                 val history = repository.getYearlyHistoryForAllergens(regionId, allergens)
                 return Result.success(history)
+            } catch (e: CancellationException) {
+                // cancellation is not a failure - rethrow so the calling scope can end
+                throw e
             } catch (e: Exception) {
                 return Result.failure(e)
             }

@@ -44,7 +44,8 @@ import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 import java.time.LocalDate
 import kotlin.math.sin
 
-private const val MAX_CHART_LEVEL = 7
+// shared by the Canvas chart and the MPAndroidChart axis setup
+internal const val MAX_CHART_LEVEL = 7
 
 @Composable
 fun HistoryScreen(
@@ -90,7 +91,7 @@ fun HistoryScreenContent(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = uiState.error ?: "Unknown error",
+                        text = uiState.error.orEmpty(),
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )

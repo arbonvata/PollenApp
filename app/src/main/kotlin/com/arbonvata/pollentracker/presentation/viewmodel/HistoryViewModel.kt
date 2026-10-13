@@ -7,13 +7,13 @@ import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.domain.repositories.UserPreferenceRepository
 import com.arbonvata.pollentracker.domain.usecases.GetYearlyHistoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 
 data class HistoryUiState(
     val isLoading: Boolean = false,
@@ -64,8 +64,10 @@ class HistoryViewModel
                             }
                         },
                     )
+                } catch (e: CancellationException) {
+                    // the scope is being cleared - let the coroutine end without an error state
+                    throw e
                 } catch (e: Exception) {
-                    if (e is CancellationException) throw e
                     Log.e("HistoryVM", "Error loading settings", e)
                     _uiState.update { state ->
                         state.copy(isLoading = false, error = "Failed to load history: ${e.message}")
