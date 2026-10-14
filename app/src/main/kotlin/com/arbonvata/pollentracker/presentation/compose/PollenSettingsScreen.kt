@@ -19,12 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.PollenType
 import com.arbonvata.pollentracker.ui.theme.GrayLight40
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
@@ -43,14 +45,14 @@ fun PollenFavoriteRegionSettings(modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "Plats",
+                text = stringResource(R.string.settings_location),
                 style = MaterialTheme.typography.titleLarge,
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
             )
             Text(
-                text = "Ej angiven",
+                text = stringResource(R.string.settings_location_not_set),
                 style = MaterialTheme.typography.bodyMedium,
                 fontStyle = FontStyle.Italic,
                 fontWeight = FontWeight.Normal,
@@ -59,7 +61,7 @@ fun PollenFavoriteRegionSettings(modifier: Modifier = Modifier) {
         }
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = "Navigate to location chooser screen",
+            contentDescription = stringResource(R.string.cd_navigate_location_chooser),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -76,7 +78,7 @@ fun PollenAllergenLabel(modifier: Modifier = Modifier) {
                 .padding(16.dp),
     ) {
         Text(
-            text = "Ange vilka pollenslag du vill följa. Du kan välja flera. Dessa kommer att visas på startsidan.",
+            text = stringResource(R.string.settings_allergen_label),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
@@ -110,7 +112,7 @@ fun PollenTypeSettingsItem(
     ) {
         AsyncImage(
             model = pollenType.name,
-            contentDescription = "Pollen Type Icon",
+            contentDescription = stringResource(R.string.cd_pollen_type_icon),
             modifier = Modifier.size(40.dp),
         )
         Spacer(modifier = Modifier.width(8.dp))

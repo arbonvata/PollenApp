@@ -22,11 +22,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.presentation.getAllergenIcon
 import com.arbonvata.pollentracker.presentation.viewmodel.AllergensViewModel
@@ -76,7 +78,7 @@ fun AllergyListContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text(text = "Save")
+                Text(text = stringResource(R.string.save))
             }
         },
     ) { innerPadding ->
@@ -88,13 +90,13 @@ fun AllergyListContent(
                     .fillMaxSize(),
         ) {
             Text(
-                text = "Your allergies",
+                text = stringResource(R.string.your_allergies),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
             )
             Text(
-                text = "Select pollen types to track",
+                text = stringResource(R.string.select_pollen_types_to_track),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
@@ -128,7 +130,7 @@ fun CommonAllergyListSection(
 ) {
     Column(modifier = modifier) {
         Text(
-            text = "Common allergies",
+            text = stringResource(R.string.common_allergies),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,

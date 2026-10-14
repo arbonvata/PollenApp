@@ -26,11 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.presentation.viewmodel.HistoryUiState
 import com.arbonvata.pollentracker.presentation.viewmodel.HistoryViewModel
@@ -104,7 +106,7 @@ fun HistoryMpChartScreenContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(onClick = onRetry) {
-                        Text(text = "Retry")
+                        Text(text = stringResource(R.string.retry))
                     }
                 }
             }
@@ -114,7 +116,7 @@ fun HistoryMpChartScreenContent(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "No historical data for your selected allergens yet.")
+                    Text(text = stringResource(R.string.no_historical_data))
                 }
             }
 
@@ -143,13 +145,13 @@ fun HistoryMpChartScreenContent(
                                 .padding(bottom = 8.dp),
                     ) {
                         Text(
-                            text = "Pollen history $year",
+                            text = stringResource(R.string.pollen_history_year, year),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),
                         )
                         TextButton(onClick = onSwitchChart) {
-                            Text(text = "Canvas")
+                            Text(text = stringResource(R.string.chart_canvas))
                         }
                     }
                     LazyColumn(
@@ -191,6 +193,8 @@ fun AllergenHistoryCardMpChart(
             LineData(dataSet)
         }
 
+    val contentDesc = stringResource(R.string.cd_yearly_pollen_levels, allergen.pollenName ?: allergen.pollenId)
+
     Card(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             AllergenHistoryCardHeader(allergen = allergen)
@@ -211,7 +215,7 @@ fun AllergenHistoryCardMpChart(
                 LineChart(
                     data = lineData,
                     state = rememberChartState(),
-                    contentDescription = "Yearly pollen levels for ${allergen.pollenName ?: allergen.pollenId}",
+                    contentDescription = contentDesc,
                     modifier =
                         Modifier
                             .fillMaxWidth()

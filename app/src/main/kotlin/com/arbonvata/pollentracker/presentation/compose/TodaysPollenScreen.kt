@@ -29,12 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.presentation.getAllergenIcon
 import com.arbonvata.pollentracker.presentation.viewmodel.TodaysPollenViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
@@ -85,7 +87,7 @@ fun TodaysPollenScreen(
                         contentDescription = null,
                     )
                 },
-                text = { Text(text = "History") },
+                text = { Text(text = stringResource(R.string.fab_history)) },
             )
         },
     ) { innerPadding ->
@@ -95,7 +97,10 @@ fun TodaysPollenScreen(
             }
         } else if (currentUiState.error != null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = currentUiState.error ?: "Unknown error", color = MaterialTheme.colorScheme.error)
+                Text(
+                    text = currentUiState.error,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         } else {
             val itemDataList = currentUiState.pollenDataByDay.flatten()
@@ -116,7 +121,7 @@ fun TodaysPollenScreenContent(
     Column(modifier = modifier) {
         if (itemDataList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "No forecast data for your selected allergens on this day.")
+                Text(text = stringResource(R.string.no_forecast_data))
             }
         } else {
             LazyColumn(
@@ -140,8 +145,9 @@ fun DaysScreenHeader(
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
 ) {
+    val todayLabel = stringResource(R.string.tab_today)
     val tabs =
-        remember {
+        remember(todayLabel) {
             val today = LocalDate.now()
             val tomorrow = today.plusDays(1)
             val dayAfterTomorrow = today.plusDays(2)
@@ -156,7 +162,7 @@ fun DaysScreenHeader(
                     .getDisplayName(TextStyle.FULL, locale)
                     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 
-            listOf("Today", tomorrowName, dayAfterTomorrowName)
+            listOf(todayLabel, tomorrowName, dayAfterTomorrowName)
         }
 
     SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
@@ -196,14 +202,14 @@ fun TodaysPollenScreenItem(itemData: TodaysPollenScreenItemData) {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Level: ${itemData.pollenLevel}",
+                text = stringResource(R.string.pollen_level, itemData.pollenLevel),
                 fontStyle = FontStyle.Italic,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
             )
         }
         Text(
-            text = "Count: ${itemData.pollenCount}",
+            text = stringResource(R.string.pollen_count, itemData.pollenCount),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.primary,
@@ -217,7 +223,7 @@ private fun NoPollenDataForThoseItems(emptyAllergenList: List<TodaysPollenScreen
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "No pollen data available for:",
+            text = stringResource(R.string.no_pollen_data_available),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp),

@@ -11,11 +11,14 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -28,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -64,11 +68,11 @@ fun PollenTrackerApp(
     }
 
     PollenTrackerAppScaffold(
-        modifier = modifier,
         isPlaceSelected = currentDestination?.hasRoute(LocationChooser::class) == true,
         isAllergensSelected = currentDestination?.hasRoute(AllergyList::class) == true,
         onChoosePlace = { openFromDrawer(LocationChooser) },
         onChooseAllergens = { openFromDrawer(AllergyList) },
+        modifier = modifier,
     ) { innerPadding ->
         PollenTrackerNavHost(
             navController = navController,
@@ -84,8 +88,8 @@ private fun PollenTrackerAppScaffold(
     isAllergensSelected: Boolean,
     onChoosePlace: () -> Unit,
     onChooseAllergens: () -> Unit,
-    drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
     modifier: Modifier = Modifier,
+    drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -99,17 +103,25 @@ private fun PollenTrackerAppScaffold(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                )
+                HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
                 DrawerItem(
-                    label = "Choose favorite place",
+                    label = stringResource(R.string.drawer_favorite_place),
                     icon = Icons.Filled.Place,
                     selected = isPlaceSelected,
                     onClick = { onDrawerItemClick(onChoosePlace) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 )
                 DrawerItem(
-                    label = "Choose allergens",
+                    label = stringResource(R.string.drawer_allergens),
                     icon = Icons.Filled.Checklist,
                     selected = isAllergensSelected,
                     onClick = { onDrawerItemClick(onChooseAllergens) },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
                 )
             }
         },
@@ -124,7 +136,7 @@ private fun PollenTrackerAppScaffold(
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(
                                 imageVector = Icons.Filled.Menu,
-                                contentDescription = "Open navigation drawer",
+                                contentDescription = stringResource(R.string.cd_open_navigation_drawer),
                             )
                         }
                     },
@@ -142,12 +154,14 @@ private fun DrawerItem(
     icon: ImageVector,
     selected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     NavigationDrawerItem(
         label = { Text(label) },
         icon = { Icon(imageVector = icon, contentDescription = null) },
         selected = selected,
         onClick = onClick,
+        modifier = modifier,
     )
 }
 

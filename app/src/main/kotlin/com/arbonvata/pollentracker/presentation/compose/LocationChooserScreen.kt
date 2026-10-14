@@ -20,9 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.model.UserSettings
 import com.arbonvata.pollentracker.presentation.viewmodel.UserSettingsViewModel
@@ -63,7 +65,7 @@ fun LocationChooserContent(
         OutlinedTextField(
             value = textInput,
             onValueChange = { textInput = it },
-            label = { Text("Search Location") },
+            label = { Text(stringResource(R.string.search_location)) },
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -101,7 +103,7 @@ fun LocationChooserContent(
                     .fillMaxWidth()
                     .padding(16.dp),
         ) {
-            Text(text = "Save")
+            Text(text = stringResource(R.string.save))
         }
     }
 }

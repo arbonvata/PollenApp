@@ -29,12 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.AllergenHistory
 import com.arbonvata.pollentracker.domain.model.DailyPollenLevel
 import com.arbonvata.pollentracker.presentation.getAllergenIcon
@@ -97,7 +99,7 @@ fun HistoryScreenContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(onClick = onRetry) {
-                        Text(text = "Retry")
+                        Text(text = stringResource(R.string.retry))
                     }
                 }
             }
@@ -107,7 +109,7 @@ fun HistoryScreenContent(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "No historical data for your selected allergens yet.")
+                    Text(text = stringResource(R.string.no_historical_data))
                 }
             }
 
@@ -136,13 +138,13 @@ fun HistoryScreenContent(
                                 .padding(bottom = 8.dp),
                     ) {
                         Text(
-                            text = "Pollen history $year",
+                            text = stringResource(R.string.pollen_history_year, year),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f),
                         )
                         TextButton(onClick = onSwitchChart) {
-                            Text(text = "MPAndroidChart")
+                            Text(text = stringResource(R.string.chart_mpandroidchart))
                         }
                     }
                     LazyColumn(
@@ -202,7 +204,7 @@ fun AllergenHistoryCardHeader(allergen: AllergenHistory) {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "${allergen.levels.size} recorded days",
+                text = stringResource(R.string.recorded_days, allergen.levels.size),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -215,7 +217,7 @@ fun AllergenHistoryCardHeader(allergen: AllergenHistory) {
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "peak ${peak.date}",
+                    text = stringResource(R.string.peak_date, peak.date.toString()),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
