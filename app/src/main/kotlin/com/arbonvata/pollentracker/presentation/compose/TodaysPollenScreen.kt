@@ -3,6 +3,7 @@ package com.arbonvata.pollentracker.presentation.compose
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -66,6 +67,9 @@ fun TodaysPollenScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        // The outer scaffold in PollenTrackerApp already applies window insets;
+        // don't apply them again here.
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
             DaysScreenHeader(
                 selectedTabIndex = selectedTabIndex,

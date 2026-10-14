@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">Pollen Tracker</string>
+    <string name="drawer_favorite_place">Choose favorite place</string>
+    <string name="drawer_allergens">Choose allergens</string>
+    <string name="cd_open_navigation_drawer">Open navigation drawer</string>
+
+    <!-- General / Common -->
+    <string name="save">Save</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="not_set">Not set</string>
+    <string name="none">None</string>
+    <string name="unknown_error">Unknown error</string>
+
+    <!-- AllergyListScreen -->
+    <string name="your_allergies">Your allergies</string>
+    <string name="select_pollen_types_to_track">Select pollen types to track</string>
+    <string name="common_allergies">Common allergies</string>
+
+    <!-- History / HistoryMpChart -->
+    <string name="no_historical_data">No historical data for your selected allergens yet.</string>
+    <string name="pollen_history_year">Pollen history %1$d</string>
+    <string name="chart_canvas">Canvas</string>
+    <string name="chart_mpandroidchart">MPAndroidChart</string>
+    <string name="recorded_days">%1$d recorded days</string>
+    <string name="peak_date">peak %1$s</string>
+    <string name="cd_yearly_pollen_levels">Yearly pollen levels for %1$s</string>
+
+    <!-- LocationChooserScreen -->
+    <string name="search_location">Search Location</string>
+
+    <!-- PollenSettingsScreen -->
+    <string name="settings_location">Plats</string>
+    <string name="settings_location_not_set">Ej angiven</string>
+    <string name="cd_navigate_location_chooser">Navigate to location chooser screen</string>
+    <string name="settings_allergen_label">Ange vilka pollenslag du vill följa. Du kan välja flera. Dessa kommer att visas på startsidan.</string>
+    <string name="cd_pollen_type_icon">Pollen Type Icon</string>
+
+    <!-- SummaryScreen -->
+    <string name="summary_screen_title">Summary Screen</string>
+    <string name="summary_location_id">Location ID: %1$s</string>
+    <string name="summary_selected_allergens">Selected Allergens:</string>
+
+    <!-- TodaysPollenScreen -->
+    <string name="fab_history">History</string>
+    <string name="no_forecast_data">No forecast data for your selected allergens on this day.</string>
+    <string name="tab_today">Today</string>
+    <string name="pollen_level">Level: %1$s</string>
+    <string name="pollen_count">Count: %1$d</string>
+    <string name="no_pollen_data_available">No pollen data available for:</string>
 </resources>
