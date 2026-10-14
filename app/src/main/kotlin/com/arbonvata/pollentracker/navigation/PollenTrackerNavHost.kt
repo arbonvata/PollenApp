@@ -2,6 +2,7 @@ package com.arbonvata.pollentracker.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,10 +37,11 @@ object HistoryMpChart
 fun PollenTrackerNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    startDestination: Any = LocationChooser,
 ) {
     NavHost(
         navController = navController,
-        startDestination = LocationChooser,
+        startDestination = startDestination,
         modifier = modifier,
     ) {
         composable<LocationChooser> {
@@ -59,7 +61,13 @@ fun PollenTrackerNavHost(
         composable<Summary> {
             SummaryScreen(
                 onNavigateNext = {
-                    navController.navigate(TodaysPollen)
+                    // Clear the setup flow from the back stack and land on TodaysPollen as the root destination
+                    navController.navigate(TodaysPollen) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 },
             )
         }
