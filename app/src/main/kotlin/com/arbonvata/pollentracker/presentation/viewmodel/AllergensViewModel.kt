@@ -7,11 +7,19 @@ import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.domain.repositories.UserPreferenceRepository
 import com.arbonvata.pollentracker.domain.usecases.GetAllergensUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+data class AllergensUiState(
+    val isLoading: Boolean = false,
+    val isError: Boolean = false,
+    val allergens: List<AllergenItem> = emptyList(),
+)
 
 @HiltViewModel
 class AllergensViewModel
@@ -20,8 +28,8 @@ class AllergensViewModel
         private val getAllergensUseCase: GetAllergensUseCase,
         private val userPreferenceRepository: UserPreferenceRepository,
     ) : ViewModel() {
-        private val _allergensState = MutableStateFlow<List<AllergenItem>>(emptyList())
-        val allergensState = _allergensState.asStateFlow()
+        private val _allergensState = MutableStateFlow(AllergensUiState())
+        val allergensState: StateFlow<AllergensUiState> = _allergensState.asStateFlow()
 
         private val _selectedAllergenIds = MutableStateFlow<Set<String>>(emptySet())
         val selectedAllergenIds = _selectedAllergenIds.asStateFlow()
@@ -32,12 +40,31 @@ class AllergensViewModel
 
         fun loadData() {
             viewModelScope.launch {
-                val allergens = getAllergensUseCase().filter { it.hasForecast }
-                Log.d("ArbonVata", allergens.toString())
-                _allergensState.update { allergens }
+                _allergensState.update { it.copy(isLoading = true, isError = false) }
 
-                val settings = userPreferenceRepository.readData()
-                _selectedAllergenIds.update { settings.allergyIds.toSet() }
+                try {
+                    val allergens =
+                        getAllergensUseCase()
+                            .fold(
+                                onSuccess = { allergens -> allergens.filter { it.hasForecast } },
+                                onFailure = { e ->
+                                    Log.e("AllergensVM", "Error loading allergens", e)
+                                    _allergensState.update { it.copy(isLoading = false, isError = true) }
+                                    return@launch
+                                },
+                            )
+
+                    _allergensState.update { it.copy(isLoading = false, allergens = allergens) }
+
+                    val settings = userPreferenceRepository.readData()
+                    _selectedAllergenIds.update { settings.allergyIds.toSet() }
+                } catch (e: CancellationException) {
+                    // the scope is being cleared - let the coroutine end without an error state
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("AllergensVM", "Error loading settings", e)
+                    _allergensState.update { it.copy(isLoading = false, isError = true) }
+                }
             }
         }
 
@@ -57,7 +84,7 @@ class AllergensViewModel
 
                 val selectedIds = _selectedAllergenIds.value
                 val selectedNames =
-                    _allergensState.value
+                    _allergensState.value.allergens
                         .filter { it.id in selectedIds }
                         .map { it.name }
 

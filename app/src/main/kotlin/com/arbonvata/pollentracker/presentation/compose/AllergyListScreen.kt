@@ -1,5 +1,7 @@
 package com.arbonvata.pollentracker.presentation.compose
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -11,13 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,6 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.AllergenItem
 import com.arbonvata.pollentracker.presentation.getAllergenIcon
+import com.arbonvata.pollentracker.presentation.viewmodel.AllergensUiState
 import com.arbonvata.pollentracker.presentation.viewmodel.AllergensViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 
@@ -40,39 +43,38 @@ fun AllergyListScreen(
     onNavigateNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val allergens by allergenListViewModel.allergensState.collectAsState()
+    val allergensState by allergenListViewModel.allergensState.collectAsState()
     val selectedIds by allergenListViewModel.selectedAllergenIds.collectAsState()
 
     AllergyListContent(
-        allergens = allergens,
+        allergensState = allergensState,
         selectedIds = selectedIds,
         onAllergenToggle = { allergenListViewModel.onAllergenToggle(it) },
+        onRetry = { allergenListViewModel.loadData() },
         onSaveClick = {
             allergenListViewModel.saveAllergySelection(onSuccess = onNavigateNext)
         },
-        onLoadData = { allergenListViewModel.loadData() },
         modifier = modifier,
     )
 }
 
 @Composable
 fun AllergyListContent(
-    allergens: List<AllergenItem>,
+    allergensState: AllergensUiState,
     selectedIds: Set<String>,
     onAllergenToggle: (String) -> Unit,
+    onRetry: () -> Unit,
     onSaveClick: () -> Unit,
-    onLoadData: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LaunchedEffect(Unit) {
-        onLoadData()
-    }
-
+    val isLoading = allergensState.isLoading
+    val isError = allergensState.isError
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
             Button(
                 onClick = onSaveClick,
+                enabled = !isLoading && !isError,
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -111,12 +113,57 @@ fun AllergyListContent(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 thickness = 2.dp,
             )
-            CommonAllergyListSection(
-                allergens = allergens,
-                selectedIds = selectedIds,
-                onAllergenToggle = onAllergenToggle,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                isError -> {
+                    ErrorState(
+                        onRetry = onRetry,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+
+                else -> {
+                    CommonAllergyListSection(
+                        allergens = allergensState.allergens,
+                        selectedIds = selectedIds,
+                        onAllergenToggle = onAllergenToggle,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorState(
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.error_load_failed),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Button(
+            onClick = onRetry,
+            modifier = Modifier.padding(top = 16.dp),
+        ) {
+            Text(text = stringResource(R.string.retry))
         }
     }
 }
@@ -192,25 +239,28 @@ fun AllergyListItem(
 fun AllergyListScreenPreview() {
     PollenTrackerTheme {
         AllergyListContent(
-            allergens =
-                listOf(
-                    AllergenItem(
-                        id = "1",
-                        name = "Birch",
-                        hasForecast = true,
-                        hasPollenCounts = true,
-                    ),
-                    AllergenItem(
-                        id = "2",
-                        name = "Grass",
-                        hasForecast = true,
-                        hasPollenCounts = true,
-                    ),
+            allergensState =
+                AllergensUiState(
+                    allergens =
+                        listOf(
+                            AllergenItem(
+                                id = "1",
+                                name = "Birch",
+                                hasForecast = true,
+                                hasPollenCounts = true,
+                            ),
+                            AllergenItem(
+                                id = "2",
+                                name = "Grass",
+                                hasForecast = true,
+                                hasPollenCounts = true,
+                            ),
+                        ),
                 ),
             selectedIds = setOf("1"),
             onAllergenToggle = {},
+            onRetry = {},
             onSaveClick = {},
-            onLoadData = {},
         )
     }
 }

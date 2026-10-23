@@ -25,6 +25,7 @@ class UserSettingsRepositoryImpl
         override suspend fun writeData(userSettings: UserSettings) {
             dataStore.edit { preferences ->
                 preferences[PreferenceKeys.REGION_KEY] = userSettings.regionId
+                preferences[PreferenceKeys.REGION_NAME_KEY] = userSettings.regionName
                 preferences[PreferenceKeys.ALLERGENS_LIST_ID] = json.encodeToString(userSettings.allergyIds)
                 preferences[PreferenceKeys.ALLERGENS_LIST_NAME] = json.encodeToString(userSettings.allergyNames)
             }
@@ -40,6 +41,7 @@ class UserSettingsRepositoryImpl
                     }
                 }.map { preferences ->
                     val regionId = preferences[PreferenceKeys.REGION_KEY] ?: ""
+                    val regionName = preferences[PreferenceKeys.REGION_NAME_KEY] ?: ""
 
                     val allergiesJson = preferences[PreferenceKeys.ALLERGENS_LIST_ID]
                     val allergyIds =
@@ -67,6 +69,7 @@ class UserSettingsRepositoryImpl
 
                     UserSettings(
                         regionId = regionId,
+                        regionName = regionName,
                         allergyIds = allergyIds,
                         allergyNames = allergyNames,
                     )

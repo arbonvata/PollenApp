@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 data class HistoryUiState(
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val isError: Boolean = false,
     val allergenHistory: List<AllergenHistory> = emptyList(),
 )
 
@@ -37,7 +37,7 @@ class HistoryViewModel
 
         fun loadData() {
             viewModelScope.launch {
-                _uiState.update { it.copy(isLoading = true, error = null) }
+                _uiState.update { it.copy(isLoading = true, isError = false) }
 
                 try {
                     val settings = userPreferenceRepository.readData()
@@ -60,7 +60,7 @@ class HistoryViewModel
                         onFailure = { e ->
                             Log.e("HistoryVM", "Error loading history", e)
                             _uiState.update { state ->
-                                state.copy(isLoading = false, error = "Failed to load history: ${e.message}")
+                                state.copy(isLoading = false, isError = true)
                             }
                         },
                     )
@@ -70,7 +70,7 @@ class HistoryViewModel
                 } catch (e: Exception) {
                     Log.e("HistoryVM", "Error loading settings", e)
                     _uiState.update { state ->
-                        state.copy(isLoading = false, error = "Failed to load history: ${e.message}")
+                        state.copy(isLoading = false, isError = true)
                     }
                 }
             }

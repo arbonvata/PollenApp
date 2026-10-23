@@ -8,12 +8,19 @@ import com.arbonvata.pollentracker.domain.model.UserSettings
 import com.arbonvata.pollentracker.domain.repositories.UserPreferenceRepository
 import com.arbonvata.pollentracker.domain.usecases.GetRegionsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.emptyList
+
+data class RegionsUiState(
+    val isLoading: Boolean = false,
+    val isError: Boolean = false,
+    val regions: List<Region> = emptyList(),
+)
 
 @HiltViewModel
 class UserSettingsViewModel
@@ -24,8 +31,8 @@ class UserSettingsViewModel
     ) : ViewModel() {
         private val _userSettingsState = MutableStateFlow<UserSettings?>(null)
         val userSettingsState = _userSettingsState.asStateFlow()
-        private val _regionsState = MutableStateFlow<List<Region>>(emptyList())
-        val regionsState = _regionsState.asStateFlow()
+        private val _regionsState = MutableStateFlow(RegionsUiState())
+        val regionsState: StateFlow<RegionsUiState> = _regionsState.asStateFlow()
 
         init {
             loadInitData()
@@ -33,17 +40,28 @@ class UserSettingsViewModel
 
         fun loadInitData() {
             viewModelScope.launch {
-                val settings = repository.readData()
-                _userSettingsState.update { settings }
+                try {
+                    val settings = repository.readData()
+                    _userSettingsState.update { settings }
 
-                val regionsResult = getRegionsUseCase.invoke()
-                val allergens =
-                    settings.allergyNames.forEach {
-                        Log.d("ArbonVata", it)
+                    _regionsState.update { it.copy(isLoading = true, isError = false) }
+                    val regionsResult = getRegionsUseCase.invoke()
+
+                    _regionsState.update { state ->
+                        regionsResult.fold(
+                            onSuccess = { regions -> state.copy(isLoading = false, regions = regions) },
+                            onFailure = { e ->
+                                Log.e("UserSettingsVM", "Error loading regions", e)
+                                state.copy(isLoading = false, isError = true)
+                            },
+                        )
                     }
-
-                _regionsState.update {
-                    regionsResult.getOrDefault(emptyList())
+                } catch (e: CancellationException) {
+                    // the scope is being cleared - let the coroutine end without an error state
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("UserSettingsVM", "Error loading settings", e)
+                    _regionsState.update { it.copy(isLoading = false, isError = true) }
                 }
             }
         }

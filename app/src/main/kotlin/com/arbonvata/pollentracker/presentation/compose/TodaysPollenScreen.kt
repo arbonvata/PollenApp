@@ -37,18 +37,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.arbonvata.pollentracker.R
+import com.arbonvata.pollentracker.domain.model.TodaysPollenScreenItemData
 import com.arbonvata.pollentracker.presentation.getAllergenIcon
 import com.arbonvata.pollentracker.presentation.viewmodel.TodaysPollenViewModel
 import com.arbonvata.pollentracker.ui.theme.PollenTrackerTheme
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
-
-data class TodaysPollenScreenItemData(
-    val pollenCount: Int,
-    val pollenLevel: String,
-    val pollenName: String,
-)
 
 @Composable
 fun TodaysPollenScreen(
@@ -95,13 +90,11 @@ fun TodaysPollenScreen(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-        } else if (currentUiState.error != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = currentUiState.error,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
+        } else if (currentUiState.isError) {
+            ErrorState(
+                onRetry = { viewModel.loadData() },
+                modifier = Modifier.fillMaxSize(),
+            )
         } else {
             val itemDataList = currentUiState.pollenDataByDay.flatten()
 
@@ -178,6 +171,8 @@ fun DaysScreenHeader(
 
 @Composable
 fun TodaysPollenScreenItem(itemData: TodaysPollenScreenItemData) {
+    val noneLabel = stringResource(R.string.none)
+
     Row(
         modifier =
             Modifier
@@ -202,7 +197,7 @@ fun TodaysPollenScreenItem(itemData: TodaysPollenScreenItemData) {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = stringResource(R.string.pollen_level, itemData.pollenLevel),
+                text = stringResource(R.string.pollen_level, itemData.pollenLevel ?: noneLabel),
                 fontStyle = FontStyle.Italic,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,

@@ -1,6 +1,5 @@
 package com.arbonvata.pollentracker.presentation.compose
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +26,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -90,25 +87,11 @@ fun HistoryMpChartScreenContent(
                 }
             }
 
-            uiState.error != null -> {
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        text = uiState.error.orEmpty(),
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = onRetry) {
-                        Text(text = stringResource(R.string.retry))
-                    }
-                }
+            uiState.isError -> {
+                ErrorState(
+                    onRetry = onRetry,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
 
             uiState.allergenHistory.isEmpty() -> {

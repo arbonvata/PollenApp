@@ -1,6 +1,7 @@
 package com.arbonvata.pollentracker.presentation.compose
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -23,10 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.arbonvata.pollentracker.R
 import com.arbonvata.pollentracker.domain.model.Region
 import com.arbonvata.pollentracker.domain.model.UserSettings
+import com.arbonvata.pollentracker.presentation.viewmodel.RegionsUiState
 import com.arbonvata.pollentracker.presentation.viewmodel.UserSettingsViewModel
 
 @Composable
@@ -36,11 +39,12 @@ fun LocationChooserScreen(
     onNavigateNext: () -> Unit,
 ) {
     val userSettings by viewModel.userSettingsState.collectAsState()
-    val regions by viewModel.regionsState.collectAsState()
+    val regionsState by viewModel.regionsState.collectAsState()
 
     LocationChooserContent(
         modifier = modifier,
-        regions = regions,
+        regionsState = regionsState,
+        onRetry = { viewModel.loadInitData() },
         initialSettings = userSettings,
         onSave = { updatedSettings ->
             viewModel.writeData(updatedSettings)
@@ -51,11 +55,14 @@ fun LocationChooserScreen(
 
 @Composable
 fun LocationChooserContent(
-    regions: List<Region>,
+    regionsState: RegionsUiState,
+    onRetry: () -> Unit,
     initialSettings: UserSettings?,
     onSave: (UserSettings) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val regions = regionsState.regions
+
     var textInput by remember { mutableStateOf("") }
     var selectedRegion by remember(initialSettings, regions) {
         mutableStateOf(regions.find { it.id == initialSettings?.regionId })
@@ -72,29 +79,58 @@ fun LocationChooserContent(
                     .padding(16.dp),
         )
 
-        DynamicRadioButtonGroup(
-            items = regions.filter { it.name.contains(textInput, ignoreCase = true) },
-            selectedItem = selectedRegion,
-            onItemSelect = { selectedRegion = it },
-            itemIdProvider = { it.id ?: "" },
-            itemTextProvider = { it.name },
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .weight(1f),
-        )
+        when {
+            regionsState.isLoading -> {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            regionsState.isError -> {
+                ErrorState(
+                    onRetry = onRetry,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                )
+            }
+
+            else -> {
+                DynamicRadioButtonGroup(
+                    items = regions.filter { it.name.contains(textInput, ignoreCase = true) },
+                    selectedItem = selectedRegion,
+                    onItemSelect = { selectedRegion = it },
+                    itemIdProvider = { it.id ?: "" },
+                    itemTextProvider = { it.name },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .weight(1f),
+                )
+            }
+        }
 
         Button(
             onClick = {
-                selectedRegion?.id?.let { regionId ->
-                    onSave(
-                        UserSettings(
-                            regionId = regionId,
-                            allergyIds = initialSettings?.allergyIds ?: emptyList(),
-                            allergyNames = initialSettings?.allergyNames ?: emptyList(),
-                        ),
-                    )
+                selectedRegion?.let { region ->
+                    region.id?.let { regionId ->
+                        onSave(
+                            UserSettings(
+                                regionId = regionId,
+                                regionName = region.name,
+                                allergyIds = initialSettings?.allergyIds ?: emptyList(),
+                                allergyNames = initialSettings?.allergyNames ?: emptyList(),
+                            ),
+                        )
+                    }
                 }
             },
             enabled = selectedRegion != null,
@@ -153,12 +189,16 @@ fun <T> DynamicRadioButtonGroup(
 @Composable
 fun LocationChooserScreenPreview() {
     LocationChooserContent(
-        regions =
-            listOf(
-                Region(id = "1", name = "London", forecasts = ""),
-                Region(id = "2", name = "Paris", forecasts = ""),
-                Region(id = "3", name = "New York", forecasts = ""),
+        regionsState =
+            RegionsUiState(
+                regions =
+                    listOf(
+                        Region(id = "1", name = "London", forecasts = ""),
+                        Region(id = "2", name = "Paris", forecasts = ""),
+                        Region(id = "3", name = "New York", forecasts = ""),
+                    ),
             ),
+        onRetry = {},
         initialSettings = UserSettings(regionId = "1", allergyIds = emptyList(), allergyNames = emptyList()),
         onSave = {},
     )

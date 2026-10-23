@@ -11,6 +11,7 @@
     <string name="not_set">Not set</string>
     <string name="none">None</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="error_load_failed">Couldn\'t load data. Check your connection and try again.</string>
 
     <!-- AllergyListScreen -->
     <string name="your_allergies">Your allergies</string>
@@ -38,7 +39,7 @@
 
     <!-- SummaryScreen -->
     <string name="summary_screen_title">Summary Screen</string>
-    <string name="summary_location_id">Location ID: %1$s</string>
+    <string name="summary_location">Location: %1$s</string>
     <string name="summary_selected_allergens">Selected Allergens:</string>
 
     <!-- TodaysPollenScreen -->

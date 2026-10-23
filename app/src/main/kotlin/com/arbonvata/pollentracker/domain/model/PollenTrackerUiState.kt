@@ -1,6 +1,10 @@
 package com.arbonvata.pollentracker.domain.model
 
-import com.arbonvata.pollentracker.presentation.compose.TodaysPollenScreenItemData
+data class TodaysPollenScreenItemData(
+    val pollenCount: Int,
+    val pollenLevel: String?,
+    val pollenName: String,
+)
 
 data class PollenTrackerUiState(
     val regions: List<Region> = emptyList(),
@@ -9,7 +13,7 @@ data class PollenTrackerUiState(
     val forecasts: List<Forecast> = emptyList(),
     val pollenCounts: List<PollenCount> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null,
+    val isError: Boolean = false,
     val selectedRegionId: String? = null,
     val selectedPollenId: String? = null,
     val selectedAllergyIds: List<String> = emptyList(),

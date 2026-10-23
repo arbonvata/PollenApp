@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arbonvata.pollentracker.domain.model.Forecast
 import com.arbonvata.pollentracker.domain.model.PollenTrackerUiState
+import com.arbonvata.pollentracker.domain.model.TodaysPollenScreenItemData
 import com.arbonvata.pollentracker.domain.repositories.PollenRepository
 import com.arbonvata.pollentracker.domain.repositories.UserPreferenceRepository
-import com.arbonvata.pollentracker.presentation.compose.TodaysPollenScreenItemData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,6 +35,9 @@ class TodaysPollenViewModel
 
         fun loadData() {
             viewModelScope.launch {
+                // clear any stale data/error so the UI shows the loading state again
+                _uiState.value = emptyList()
+
                 try {
                     Log.d("TodaysPollenVM", "Starting data load")
 
@@ -44,11 +48,15 @@ class TodaysPollenViewModel
 
                     Log.d("TodaysPollenVM", "Settings loaded: region=$regionId, allergies=$allergyIds")
 
-                    val pollenTypesDeferred = async { repository.getAllPollenTypes() }
-                    val levelDefsDeferred = async { repository.getAllPollenLevelDefinitions() }
+                    // supervisorScope: a failing async child must only fail the await() below,
+                    // not escape the try/catch as an unhandled coroutine exception
+                    val (pollenTypes, levelDefinitions) =
+                        supervisorScope {
+                            val pollenTypesDeferred = async { repository.getAllPollenTypes() }
+                            val levelDefsDeferred = async { repository.getAllPollenLevelDefinitions() }
 
-                    val pollenTypes = pollenTypesDeferred.await()
-                    val levelDefinitions = levelDefsDeferred.await()
+                            pollenTypesDeferred.await() to levelDefsDeferred.await()
+                        }
 
                     Log.d("TodaysPollenVM", "Reference data loaded: ${pollenTypes.size} types, ${levelDefinitions.size} levels")
 
@@ -93,7 +101,7 @@ class TodaysPollenViewModel
                                     val levelInfo = currentLevelsMap[allergyId]
 
                                     val count = levelInfo?.level ?: 0
-                                    val levelName = levelDefMap[count]?.name ?: "None"
+                                    val levelName = levelDefMap[count]?.name
 
                                     TodaysPollenScreenItemData(
                                         pollenCount = count,
@@ -126,7 +134,7 @@ class TodaysPollenViewModel
                     Log.e("TodaysPollenVM", "Error loading data", e)
                     val errorState =
                         PollenTrackerUiState(
-                            error = "Failed to load data: ${e.message}",
+                            isError = true,
                             isLoading = false,
                         )
                     _uiState.update { listOf(errorState) }

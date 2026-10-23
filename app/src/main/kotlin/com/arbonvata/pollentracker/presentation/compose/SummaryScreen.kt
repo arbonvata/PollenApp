@@ -9,7 +9,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,10 +30,6 @@ fun SummaryScreen(
     onNavigateNext: () -> Unit,
 ) {
     val userSettings by userSettingsViewModel.userSettingsState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        userSettingsViewModel.loadInitData()
-    }
 
     SummaryContent(
         userSettings = userSettings,
@@ -65,9 +60,11 @@ fun SummaryContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val regionText = userSettings?.regionId ?: stringResource(R.string.not_set)
+        val regionText =
+            userSettings?.regionName?.takeIf { it.isNotBlank() }
+                ?: stringResource(R.string.not_set)
         Text(
-            text = stringResource(R.string.summary_location_id, regionText),
+            text = stringResource(R.string.summary_location, regionText),
             style = MaterialTheme.typography.bodyLarge,
         )
 
@@ -105,6 +102,7 @@ fun SummaryScreenPreview() {
             userSettings =
                 UserSettings(
                     regionId = "Stockholm",
+                    regionName = "Stockholm",
                     allergyIds = listOf("1", "2"),
                     allergyNames = listOf("Birch", "Grass"),
                 ),
